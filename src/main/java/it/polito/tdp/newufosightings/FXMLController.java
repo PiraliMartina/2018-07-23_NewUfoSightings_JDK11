@@ -1,9 +1,12 @@
 package it.polito.tdp.newufosightings;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.newufosightings.model.Model;
+import it.polito.tdp.newufosightings.model.State;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,7 +36,7 @@ public class FXMLController {
     private Button btnSelezionaAnno;
 
     @FXML
-    private ComboBox<?> cmbBoxForma;
+    private ComboBox<String> cmbBoxForma;
 
     @FXML
     private Button btnCreaGrafo;
@@ -49,17 +52,75 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	try {
+    		int anno = Integer.parseInt(txtAnno.getText());
+    		String shape = cmbBoxForma.getValue();
+    		model.creaGrafo(anno, shape);
+    		
+    		txtResult.setText(String.format("Grafo creato con %d vertici e %d archi \n", model.numVertex(), model.numEdges()));
+    		for(State s: model.getAllVertex()) {
+    			txtResult.appendText(String.format("%s - %d\n", s, model.pesoAdiacenti(s)));
+    		}
+    	} catch(Exception e) {
+    		txtResult.setText("ERRORE!!!");
+    	}
     }
 
     @FXML
     void doSelezionaAnno(ActionEvent event) {
-
+    	try {
+    		int anno = Integer.parseInt(txtAnno.getText());
+    		if(anno>2014 || anno<1910) {
+    			txtResult.setText("Inserisci anno tra 2014 e 1910");
+    			return;
+    		}
+    		
+    		List<String> ls = model.getAllShapes(anno);
+    		ls.sort(null);
+    		ls.remove(0);
+    		cmbBoxForma.getItems().addAll(ls);
+    		cmbBoxForma.setValue(ls.get(0));
+    		
+    		
+    	} catch(NumberFormatException e) {
+    		txtResult.setText("Non hai inserito un numero!!!");
+    	} catch(Exception e) {
+    		txtResult.setText("ERRORE!!!");
+    	}
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	try {
+    		int T = Integer.parseInt(txtT1.getText());
+    		int alpha = Integer.parseInt(txtAlfa.getText());
+    		int anno = Integer.parseInt(txtAnno.getText());
+    		String shape = cmbBoxForma.getValue();
+    		
+    		if(T<0 || T>365) {
+    			txtResult.setText("Valore di T errato!");
+    			return;
+    		}
+    		if(alpha<0 || alpha>100) {
+    			txtResult.setText("Valore di alpha errato!");
+    			return;
+    		}
+    		if(anno>2014 || anno<1910) {
+    			txtResult.setText("Inserisci anno tra 2014 e 1910");
+    			return;
+    		}
+    		
+    		Map<String,Double> defcon = model.simula(anno, shape, T, alpha);
+    		txtResult.setText("SIMULAZIONE: \n");
+    		for(String s: defcon.keySet()) {
+    			txtResult.appendText(String.format("%s- %.1f \n", s, defcon.get(s)));
+    		}
+    		
+    	} catch(NumberFormatException e) {
+    		txtResult.setText("Non hai inserito un numero!!!");
+    	} catch(Exception e) {
+    		txtResult.setText("ERRORE!!!");
+    	}
     }
 
     @FXML
